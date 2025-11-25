@@ -142,7 +142,7 @@ hydra:
     - path: ''
       schema: structured
       provider: schema
-    output_dir: /home/zjc/PyTorch-NEAT/outputs/2025-11-25/18-15-50
+    output_dir: /home/zjc/PyTorch-NEAT/outputs/2025-11-25/21-13-59
     choices:
       task: vmas/transport
       algorithm: recurrent

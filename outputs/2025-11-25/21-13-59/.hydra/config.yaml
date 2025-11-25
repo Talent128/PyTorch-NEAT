@@ -1,5 +1,5 @@
 experiment:
-  generations: 1000
+  generations: 300
   trials: 50
   n_parallel: 128
   device: cpu
@@ -22,7 +22,7 @@ algorithm:
   dtype: float32
   device: cpu
 task:
-  max_steps: 800
+  max_steps: 1200
   n_agents: 8
   n_packages: 1
   package_width: 0.15

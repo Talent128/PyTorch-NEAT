@@ -4,7 +4,7 @@ defaults:
 
 
 
-max_steps: 800
+max_steps: 1200
 n_agents: 8
 n_packages: 1
 package_width: 0.15

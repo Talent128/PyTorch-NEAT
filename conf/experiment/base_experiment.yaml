@@ -2,7 +2,7 @@ defaults:
   - experiment_config
   - _self_
 
-generations: 1000          # NEAT 训练的进化代数
+generations: 300          # NEAT 训练的进化代数
 trials: 50                 #每个基因(genome)的评估实验次数 (使用vmas原生的并行)
 n_parallel: 128             #表示多少个基因组并行评估
 
