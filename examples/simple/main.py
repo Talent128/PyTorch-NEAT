@@ -24,6 +24,7 @@ import os  # 用于文件路径操作
 import click  # 命令行参数解析库
 import gymnasium as gym  # OpenAI Gym环境库，提供强化学习环境
 import neat  # NEAT算法核心库
+import torch  # PyTorch库
 
 from pytorch_neat.multi_env_eval import MultiEnvEvaluator  # 多环境评估器
 from pytorch_neat.neat_reporter import LogReporter  # 日志记录器
@@ -31,6 +32,9 @@ from pytorch_neat.recurrent_net import RecurrentNet  # 递归神经网络
 
 # 每个episode的最大步数，防止无限运行
 max_env_steps = 200
+
+# 全局设备变量，用于存储GPU/CPU设备
+_device = 'cuda:3'
 
 
 def make_env():
@@ -63,7 +67,7 @@ def make_net(genome, config, bs):
     Returns:
         RecurrentNet: 递归神经网络实例
     """
-    return RecurrentNet.create(genome, config, bs)
+    return RecurrentNet.create(genome, config, bs, device=_device)
 
 
 def activate_net(net, states):
@@ -93,7 +97,9 @@ def activate_net(net, states):
 
 @click.command()  # 将函数转换为命令行命令
 @click.option("--n_generations", type=int, default=100)  # 命令行参数：训练代数
-def run(n_generations):
+@click.option("--device", type=str, default=None, 
+              help="计算设备: 'cuda', 'cuda:0', 'cpu'等。默认自动选择")
+def run(n_generations, device):
     """
     运行NEAT训练过程
     
@@ -106,7 +112,16 @@ def run(n_generations):
     
     Args:
         n_generations (int): 要训练的代数，默认100代
+        device (str): 计算设备，如 'cuda', 'cuda:0', 'cpu'
     """
+    # 设置全局设备变量
+    global _device
+    if device is None:
+        _device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    else:
+        _device = torch.device(device)
+    print(f"使用设备: {_device}")
+    
     # 加载配置文件，配置文件定义了NEAT的所有超参数
     # 包括种群大小、变异率、交叉率、激活函数等
     config_path = os.path.join(os.path.dirname(__file__), "neat.cfg")

@@ -234,7 +234,6 @@ class Experiment:
                 use_current_activs=getattr(self.algorithm_config, 'use_current_activs', False),
                 n_internal_steps=getattr(self.algorithm_config, 'n_internal_steps', 1),
                 prune_empty=getattr(self.algorithm_config, 'prune_empty', True),
-                dtype=getattr(torch, getattr(self.algorithm_config, 'dtype', 'float32')),
                 device=device,
             )
 
@@ -324,9 +323,8 @@ class Experiment:
         with torch.no_grad():
             output = net.activate(obs)
 
+        #print(f"neat输出output: {output}")
         # 将输出映射到动作空间
-        # 假设使用tanh激活，输出范围是[-1, 1]
-        # 需要映射到u_range
         # u_range可能是float（表示[-u_range, u_range]）或tensor/列表[min, max]
         if isinstance(u_range, (list, tuple)):
             u_min = u_range[0]
@@ -344,12 +342,19 @@ class Experiment:
             u_min = -u_range
             u_max = u_range
 
-        # Clip到[-1, 1]（防止激活函数输出超出范围）
-        output = torch.clamp(output, -1.0, 1.0)
+        # 根据激活函数类型映射输出到动作空间
+        activation_name = getattr(self.algorithm_config, 'activation', 'sigmoid')
+        
+        if activation_name == 'tanh':
+            # tanh输出范围是[-1, 1]，clamp后映射到[u_min, u_max]
+            output = torch.clamp(output, -1.0, 1.0)
+            action = (output + 1.0) / 2.0 * (u_max - u_min) + u_min
+        else:
+            # sigmoid激活函数输出范围是[0, 1]，clamp后映射到[u_min, u_max]
+            output = torch.clamp(output, 0.0, 1.0)
+            action = output * (u_max - u_min) + u_min
 
-        # 线性映射: [-1, 1] -> [u_min, u_max]
-        action = (output + 1.0) / 2.0 * (u_max - u_min) + u_min
-
+        #print(f"neat处理后动作action: {action}")
         return action
 
     def _eval_genome_worker(self, args):

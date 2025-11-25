@@ -2,18 +2,18 @@ defaults:
   - experiment_config
   - _self_
 
-generations: 10000          # NEAT 训练的进化代数
-trials: 300                 #每个基因(genome)的评估实验次数 (使用vmas原生的并行)
-n_parallel: 16             #表示多少个基因组并行评估
+generations: 1000          # NEAT 训练的进化代数
+trials: 50                 #每个基因(genome)的评估实验次数 (使用vmas原生的并行)
+n_parallel: 128             #表示多少个基因组并行评估
 
-device: "cuda"            #训练评估使用的设备 "cpu" 或 "cuda"
+device: "cpu"            #训练评估使用的设备 "cpu" 或 "cuda"
 
 continuous_actions: True     #是否用连续动作
 
 overwrite: False         #是否覆盖已有的 checkpoint 重新训练,而不是在最近的检查点开始
 
-render: True           #是否进行渲染（在result_of_experiment中），用于展示结果时渲染
-save_render: True       #是否保存渲染视频,要保存视频，必须启用渲染（render=True）
+render: False           #是否进行渲染（在result_of_experiment中），用于展示结果时渲染
+save_render: False       #是否保存渲染视频,要保存视频，必须启用渲染（render=True）
 train_render: False      #训练时是否渲染（默认False,尽量训练不要渲染）
 show_gen: -1             #允许选择某个特定的进化代数进行结果渲染可视化(-1表示默认展示最后一代)
 collect_results: True   #是否将训练适应度数据存储到文件

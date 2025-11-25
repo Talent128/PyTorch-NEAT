@@ -58,13 +58,14 @@ class GenomeEvaluator:
                 # obs[i]: 第i个智能体在所有环境中的观测 (n_envs, obs_dim)
                 # u_range: 动作的允许范围（例如 [-1, 1]）,u_range=env.agents[i].u_range
                 # 返回: (n_envs, action_dim) 的动作张量
-                #print(f"Obs for agent {i} at step {step}: {obs[i]}")
+                #print(f"vmas-Obs for agent {i} at step {step}: {obs[i]}")
                 actions[i] = self.activate_net(
                     net,
                     obs[i],
                     u_range=self.env.agents[i].u_range
                 )
-            #print(f"Step {step}, Actions: {actions}")
+            #print(f"Step {step}, neat—Actions: {actions}")
+
             # ===== 执行动作，获取下一步状态 =====
             # step()返回四个值：
             # - obs: 新观测列表
@@ -82,13 +83,13 @@ class GenomeEvaluator:
             # 计算每个环境的全局奖励（所有智能体的平均）
             # global_reward 形状: (n_envs,)
             global_reward = rewards.mean(dim=1)
-            #print(f"Step {step}, Rewards: {global_reward}")
+            #print(f"Step {step}, global_reward: {global_reward}")
             # 计算所有环境的平均奖励（标量）
             mean_global_reward = global_reward.mean(dim=0).item()
-            
+            #print(f"Step {step}, mean_global_reward: {mean_global_reward}")
             # 累积奖励
             total_reward += mean_global_reward
-            
+            #print(f"Step {step}, total_reward: {total_reward}")
             # =====  渲染（如果启用） =====
             if self.render:
                 # 渲染当前帧

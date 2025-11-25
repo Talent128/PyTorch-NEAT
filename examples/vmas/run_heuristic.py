@@ -104,12 +104,12 @@ def run_heuristic(
             # obs[i]: 第i个智能体在所有环境中的观测 (n_envs, obs_dim)
             # u_range: 动作的允许范围（例如 [-1, 1]）
             # 返回: (n_envs, action_dim) 的动作张量
-            print(f"Obs for agent {i} at step {step}: {obs[i]}")
+            #print(f"vmas-Obs for agent {i} at step {step}: {obs[i]}")
             actions[i] = policy.compute_action(
                 obs[i], 
                 u_range=env.agents[i].u_range
             )
-        #print(f"Step {step}, Actions: {actions}")
+        #print(f"Step {step}, vmas-Actions: {actions}")
         # ===== 4.2 执行动作，获取下一步状态 =====
         # step()返回四个值：
         # - obs: 新观测列表
@@ -117,17 +117,18 @@ def run_heuristic(
         # - dones: 终止标志，形状 (n_envs,)
         # - info: 额外信息字典列表
         obs, rews, dones, info = env.step(actions)
+        #print(f"Step {step} - Rewards: {rews}")#Step 200 - Rewards: [tensor([0.1047, 0.1030]), tensor([0.1047, 0.1030]), tensor([0.1047, 0.1030]), tensor([0.1047, 0.1030])]           Tensor代表该 agent 在每个并行环境实例上的奖励
         
         # ===== 4.3 计算和累积奖励 =====
         # 将奖励列表堆叠成张量
         # rewards 形状: (n_envs, n_agents)
         rewards = torch.stack(rews, dim=1)
-        #print(f"Step {step}, Rewards: {rewards}")
+        #print(f"Step {step} - Stacked Rewards: {rewards}")#Step 200 - Stacked Rewards: tensor([[0.1047, 0.1047, 0.1047, 0.1047],[0.1030, 0.1030, 0.1030, 0.1030]])
         
         # 计算每个环境的全局奖励（所有智能体的平均）
         # global_reward 形状: (n_envs,)
         global_reward = rewards.mean(dim=1)
-        #print(f"Step {step}, Rewards: {global_reward}")
+        #print(f"Step {step} - Global Rewards: {global_reward}")#Step 200 - Global Rewards: tensor([0.1047, 0.1030])
         # 计算所有环境的平均奖励（标量）
         mean_global_reward = global_reward.mean(dim=0)
         
@@ -180,9 +181,9 @@ if __name__ == "__main__":
     run_heuristic(
         scenario_name="transport",  # 使用transport场景
         heuristic=TransportHeuristic,  # 使用transport的专用策略
-        n_envs=300,  # 300个并行环境（大规模向量化）
-        n_steps=500,  # 运行200步
-        render=True,  # 显示渲染
+        n_envs=2,  # 300个并行环境（大规模向量化）
+        n_steps=100,  # 运行200步
+        render=False,  # 显示渲染
         save_render=False,  # 不保存视频（节省磁盘空间）
     )
 

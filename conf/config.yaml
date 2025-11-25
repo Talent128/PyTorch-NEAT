@@ -4,4 +4,4 @@ defaults:
   - task: ???
   - _self_
 
-seed: 0
+seed: 42
