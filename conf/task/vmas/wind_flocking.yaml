@@ -3,7 +3,7 @@ defaults:
   - _self_
 
 
-max_steps: 100
+max_steps: 1200
 horizon: 100
 dist_shaping_factor: 1
 vel_shaping_factor: 1

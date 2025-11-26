@@ -6,10 +6,10 @@ NEAT进化实验模块
 from dataclasses import dataclass
 from typing import Optional
 import os
-import pickle
 import time
 import multiprocessing
 import tempfile
+import gzip, random, pickle
 
 import neat
 import torch
@@ -29,6 +29,7 @@ from .utils import (
     generate_grid_coords,
     load_neat_config_with_substitution,
 )
+from .better_pop import better_Population
 
 
 @dataclass
@@ -80,6 +81,8 @@ class Experiment:
         self.task_config = task_config
         self.config = experiment_config
         self.seed = seed
+
+        self.just_restored = False  # 记录是否刚从检查点恢复
         
         # 设置随机种子
         seed_everything(seed)
@@ -134,7 +137,6 @@ class Experiment:
 
         # 初始化种群
         self.population = None
-        self.generation = 0
         
         # 设置multiprocessing启动方法（CUDA需要spawn）
         if self.config.device == "cuda" and self.config.n_parallel > 1:
@@ -390,12 +392,18 @@ class Experiment:
         return genome.fitness
 
     def _eval_genomes(self, genomes, config):
-        """评估所有基因组（并行）
+        """评估所有基因组（并行）,用于训练过程
 
         Args:
             genomes: 基因组列表 [(genome_id, genome), ...]
             config: NEAT配置
         """
+        # 如果刚从检查点恢复，跳过这一代的评估（已有适应度）
+        if self.just_restored:
+            print("从检查点恢复，跳过本代评估，不重复评估（使用已保存的适应度）")
+            self.just_restored = False
+            return
+
         # 准备评估器参数
         evaluator_kwargs = {
             'make_net': self._make_net,
@@ -406,14 +414,13 @@ class Experiment:
             'render': self.config.train_render,  # 训练时根据train_render参数决定是否渲染
             'save_render': False,   #训练时不保存视频(若每个基因都保存太多了，因而当前保存命名没有区分基因id)
             'video_dir': self.video_dir,
-            'generation': self.generation,
             'scenario_name': self.scenario_name
         }
 
         # 准备多进程参数
         args_list = [
             (genome_id, genome, config, evaluator_kwargs)
-            for genome_id, genome in genomes
+            for genome_id, genome in genomes                #会对这一代所有基因进行评估（包括从上一代保留下来的精英）
         ]
 
         # 并行评估
@@ -427,35 +434,73 @@ class Experiment:
             results = [self._eval_genome_worker(args) for args in args_list]
 
         # 更新适应度
+        genomes_dict = dict(genomes)
         for genome_id, fitness in results:
-            genome = dict(genomes)[genome_id]
-            genome.fitness = fitness
+            genomes_dict[genome_id].fitness = fitness
 
-    def train(self):
-        """训练NEAT种群"""
+    def run(self):
+        """运行实验：训练（如需要）+ 展示结果
+        
+        流程：
+        1. 检查是否需要训练（基于overwrite和检查点状态）
+        2. 如果需要训练：初始化/恢复种群，运行进化
+        3. 展示实验结果
+        """
+        need_train = False
+        checkpoint_file = self._find_latest_checkpoint(self.checkpoint_dir)
+        
+        # 判断是否需要训练
+        if self.config.overwrite:
+            # 覆盖模式：忽略检查点，重新训练(已保存的检查点会被覆盖（注意：不会先将之前保存的检查点先删除，因而未被覆盖的仍是之前训练的结果），log.json是在后面继续添加)
+            print("overwrite=True，将重新开始训练（忽略已有检查点）")
+            need_train = True
+        elif checkpoint_file is None:
+            # 没有检查点：从头开始训练
+            print("未找到检查点，将从头开始训练")
+            need_train = True
+        else:
+            # 有检查点：检查是否已完成
+            last_gen = int(checkpoint_file.split('-')[-1])
+            if last_gen < self.config.generations - 1:
+                print(f"检查点代数({last_gen}) < 目标代数({self.config.generations})，继续训练")
+                need_train = True
+            else:
+                print(f"训练已完成 (检查点代数: {last_gen})")
+        
+        # 执行训练
+        if need_train:
+            self._train(checkpoint_file if not self.config.overwrite else None)
+        
+        # 展示实验结果
+        self.result_of_experiment()
+
+    def _train(self, checkpoint_file=None):
+        """执行NEAT进化训练（内部方法）
+        
+        Args:
+            checkpoint_file: 检查点文件路径，None表示从头开始
+        """
         print(f"\n开始训练 - 进化{self.config.generations}代\n")
 
-        # 检查是否恢复
-        if not self.config.overwrite:      
-            print('RESTORING')
-            checkpoint_file = self._find_latest_checkpoint(self.checkpoint_dir)
-            if checkpoint_file is not None:
-                print(f"从检查点恢复: {checkpoint_file}")
-                self.population = neat.Checkpointer.restore_checkpoint(checkpoint_file)
-                self.generation = int(checkpoint_file.split('-')[-1])
-                print(f"从第 {self.generation} 代继续训练\n")
-
-        # 创建新种群
-        if self.population is None:
-            self.population = neat.Population(self.neat_config)
-            self.generation = 0
+        # 初始化种群
+        if checkpoint_file is not None:
+            # 从检查点恢复
+            print(f"从检查点恢复: {checkpoint_file}")
+            #self.population = neat.Checkpointer.restore_checkpoint(checkpoint_file)        #neat原生实现，但创建种群中有小问题，见better_pop.py
+            self.population = self.restore_checkpoint(checkpoint_file)
+            self.just_restored = True
+            k = int(checkpoint_file.split('-')[-1])         #用于计算还要训练多少代
+        else:
+            # 创建新种群
+            self.population = better_Population(self.neat_config)
+            k = 0
 
         # 添加报告器
         self.population.add_reporter(neat.StdOutReporter(True))
         stats = neat.StatisticsReporter()
         self.population.add_reporter(stats)
 
-        # 添加检查点
+        # 添加检查点保存器
         checkpointer = neat.Checkpointer(
             self.config.checkpt_freq,
             filename_prefix=os.path.join(self.checkpoint_dir, 'neat-checkpoint-')
@@ -466,14 +511,17 @@ class Experiment:
         if self.config.collect_results:
             log_file = os.path.join(self.log_dir, "log.json")
             logger = LogReporter(log_file, self._get_existing_fitness, eval_with_debug=False)
+            # 如果刚从检查点恢复，跳过第一次日志记录（避免重复记录）
+            if self.just_restored:
+                logger.skip_next_log = True
             self.population.add_reporter(logger)
-            print(f"已启用日志记录: {log_file}")
+            print(f"启用日志记录: {log_file}")
 
         # 运行进化
         start_time = time.time()
         winner = self.population.run(
             self._eval_genomes,
-            self.config.generations - self.generation
+            self.config.generations - k           #还需要评估的代数    
         )
         elapsed_time = time.time() - start_time
 
@@ -481,36 +529,13 @@ class Experiment:
         print("训练统计")
         print(f"{'='*60}")
         print(
-                f"耗时: {elapsed_time/60:.2f} 分钟"
-                f"共 {self.config.generations} 代"
-                f"最佳适应度: {winner.fitness:.4f}"
-            )
+            f"耗时: {elapsed_time/60:.2f} 分钟, "
+            f"共 {self.config.generations} 代, "
+            f"最佳适应度: {winner.fitness:.4f}"
+        )
         print(f"{'='*60}")
 
-
         return winner
-
-    def run(self):
-        """运行实验：训练（如需要）+ 展示结果"""
-        # 检查是否需要训练
-        checkpoint_file = self._find_latest_checkpoint(self.checkpoint_dir)
-        
-        # 如果没有检查点，或者指定了代数但未完成训练
-        if checkpoint_file is None:
-            # 没有检查点，需要从头开始训练
-            print("未找到检查点，将从头开始训练")
-            self.train()
-        else:
-            # 有检查点，检查是否需要继续训练
-            last_gen = int(checkpoint_file.split('-')[-1])
-            if last_gen < self.config.generations - 1:
-                print(f"检查点代数({last_gen}) < 目标代数({self.config.generations})，继续训练")
-                self.train()
-            else:
-                print(f"训练已完成 (检查点代数: {last_gen})")
-        
-        # 展示实验结果
-        self.result_of_experiment()
 
     def _find_latest_checkpoint(self, checkpoint_dir):
         """查找最新的检查点文件
@@ -533,6 +558,18 @@ class Experiment:
         return os.path.join(checkpoint_dir, checkpoints[-1])
 
 
+    @staticmethod
+    def restore_checkpoint(filename):
+        """
+        从 checkpoint(检查点)文件恢复 NEAT 进化状态。
+
+        @param filename: 需要恢复的 checkpoint 文件路径。
+        """
+        with gzip.open(filename) as f:
+            generation, config, population, species_set, rndstate = pickle.load(f)
+            random.setstate(rndstate)
+            return better_Population(config, (population, species_set, generation))
+    
     ####################################################################################################################
     # output functions
     ####################################################################################################################
@@ -571,7 +608,7 @@ class Experiment:
             checkpoint_file = os.path.join(self.checkpoint_dir, checkpoints[-1])
             target_gen = int(checkpoints[-1].split('-')[-1])
         
-        print(f"加载第 {target_gen} 代的检查点: {checkpoint_file}")
+        print(f"加载第 {target_gen} 代的检查点: {checkpoint_file} -> 评估最佳个体...")
         
         # 加载检查点
         population = neat.Checkpointer.restore_checkpoint(checkpoint_file)
@@ -587,10 +624,9 @@ class Experiment:
         if best_genome is None:
             raise ValueError("未找到有效的最佳个体")
         
-        print(f"最佳个体适应度: {best_fitness:.4f}\n")
+        #print(f"最佳个体训练时适应度: {best_fitness:.4f}\n")
         
         # 评估最佳个体（用于统计和渲染）
-        print("评估最佳个体...")
         start_time = time.time()
         
         # 创建评估器（启用渲染如果设置了render参数）

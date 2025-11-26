@@ -62,6 +62,7 @@ class LogReporter(BaseReporter):
         self.eval_best = eval_best  # 保存评估函数
         self.eval_with_debug = eval_with_debug  # 保存调试标志
         self.log_dict = {}  # 当前代的日志字典
+        self.skip_next_log = False  # 跳过下一次日志记录（用于检查点恢复时避免重复记录）
 
     def start_generation(self, generation):
         """
@@ -86,6 +87,13 @@ class LogReporter(BaseReporter):
             population (dict): 当前种群 {genome_id: genome}
             species_set: 物种集合对象
         """
+        # 如果设置了跳过标志（检查点恢复时），则跳过本次日志记录
+        if self.skip_next_log:
+            self.skip_next_log = False  # 重置标志
+            self.log_dict = {}  # 清空日志字典
+            print("跳过本代日志记录（从检查点恢复）")
+            return
+
         # 记录种群大小
         ng = len(population)  # 计算种群中的个体数量
         self.log_dict["pop_size"] = ng  # 保存到日志字典

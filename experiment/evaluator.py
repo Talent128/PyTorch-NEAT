@@ -6,7 +6,7 @@ import os
 
 class GenomeEvaluator:
     def __init__(self, make_net, activate_net, batch_size=5, n_steps=None, make_env=None, 
-                 render=False, save_render=False, video_dir=None, generation=0, scenario_name=""):
+                 render=False, save_render=False, video_dir=None, generation=-1, scenario_name=""):
         # 创建或使用提供的环境列表
         self.env = make_env() 
         
@@ -110,7 +110,7 @@ class GenomeEvaluator:
         # 如果需要保存视频
         if self.render and self.save_render:
             # 视频文件名包含代数和基因组ID
-            video_basename = f"{self.scenario_name}_gen{self.generation}_{total_reward:.2f}" #视频命名规则:场景名_代数_基因组ID_总奖励
+            video_basename = f"{self.scenario_name}_gen{self.generation}_{total_reward:.2f}" #视频命名规则:场景名_代数_总奖励
             
             # save_video会在当前目录保存，需要切换到video_dir
             old_cwd = os.getcwd()

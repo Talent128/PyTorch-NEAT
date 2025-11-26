@@ -1,5 +1,5 @@
 experiment:
-  generations: 300
+  generations: 500
   trials: 50
   n_parallel: 128
   device: cpu
