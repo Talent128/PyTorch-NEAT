@@ -1,0 +1,4 @@
+- algorithm=recurrent
+- task=vmas/flocking
+- task.static_at_origin=False
+- experiment.generations=100

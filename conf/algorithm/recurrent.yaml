@@ -1,0 +1,12 @@
+defaults:
+  - recurrent_config
+  - _self_
+
+neat_config_path: conf/algorithm/neat_config/recurrent.cfg
+n_internal_steps: 1
+activation: sigmoid
+use_current_activs: False
+prune_empty: False
+dtype: float32
+#batch_size: null  # 将在运行时被experiment.trials覆盖（VMAS并行环境数）
+#device: "cpu"     # 默认值，会被experiment.device覆盖

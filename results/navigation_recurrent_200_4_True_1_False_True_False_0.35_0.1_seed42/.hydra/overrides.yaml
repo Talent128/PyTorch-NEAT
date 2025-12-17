@@ -1,0 +1,4 @@
+- algorithm=recurrent
+- task=vmas/navigation
+- task.n_agents=4
+- experiment.generations=50

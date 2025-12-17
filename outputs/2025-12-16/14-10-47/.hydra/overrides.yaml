@@ -1,0 +1,4 @@
+- algorithm=recurrent
+- task=vmas/flocking
+- experiment.render=true
+- experiment.device=cpu

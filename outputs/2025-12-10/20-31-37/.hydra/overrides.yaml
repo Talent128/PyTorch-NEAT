@@ -1,0 +1,6 @@
+- algorithm=recurrent
+- task=vmas/flocking
+- task.static_at_origin=False
+- experiment.render=true
+- experiment.device=cpu
+- experiment.show_gen=50

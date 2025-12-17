@@ -1,0 +1,10 @@
+defaults:
+  - vmas_give_way_config
+  - _self_
+
+
+max_steps: 300
+mirror_passage: False     # 是否在上下两侧都开通道
+observe_rel_pos: False    # 观测中是否加入对方相对位置
+done_on_completion: False # 双方到达目标后是否立即结束 episode
+final_reward: 0.01        # 双方都达成时的终局奖励

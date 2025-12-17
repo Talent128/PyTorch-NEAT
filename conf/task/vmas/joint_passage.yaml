@@ -1,0 +1,15 @@
+defaults:
+  - vmas_joint_passage_config
+  - _self_
+
+
+max_steps: 600
+n_passages: 1 # 通道数量
+fixed_passage: True # 通道是否固定在中心一带（否则每个环境随机位置）
+joint_length: 0.5 # 两智能体连杆长度
+random_start_angle: True  # 初始连杆角度是否随机（否则为0度）
+random_goal_angle: True # 目标连杆角度是否随机（否则与水平对齐）
+observe_joint_angle: True  # 观测中是否加入连杆角度向量
+asym_package: True  # 是否启用非对称质量块（连杆中挂黑色质量） 意义：引入动力学非对称性（偏心惯性或单侧更重），让通过狭窄通道和旋转对齐更具挑战，需要两个代理协同控制姿态/角度，避免碰撞；也可用于研究异质体或重心偏移对策略的影响。
+mass_ratio: 5 # 质量块相对标准质量的倍数
+mass_position: 0.75 # 质量块在连杆上的位置比例（0-1，越大越靠近agent_1）

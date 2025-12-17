@@ -1,0 +1,12 @@
+defaults:
+  - vmas_dispersion_config
+  - _self_
+
+
+
+max_steps: 100
+n_agents: 12
+n_food: 12               #环境定义：n_food = kwargs.pop("n_food", n_agents)，该任务为分散任务，n_food 应该要等于 n_agents
+share_reward: True      # 是否共享奖励，True 时所有智能体共享同一奖励信号，False 时奖励分配给触碰食物的个体
+food_radius: 0.02        # 食物半径，决定触碰判定范围
+penalise_by_time: True  # 是否按时间惩罚，True 时在每个时间步对未得分的环境施加-0.01惩罚，鼓励更快收集

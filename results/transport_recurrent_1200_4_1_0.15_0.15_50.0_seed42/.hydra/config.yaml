@@ -1,0 +1,31 @@
+experiment:
+  generations: 300
+  trials: 50
+  n_parallel: 128
+  device: cpu
+  continuous_actions: true
+  overwrite: false
+  render: false
+  save_render: false
+  train_render: false
+  show_gen: -1
+  collect_results: true
+  checkpt_freq: 1
+  results_dir: null
+algorithm:
+  neat_config_path: conf/algorithm/neat_config/recurrent.cfg
+  batch_size: null
+  activation: sigmoid
+  prune_empty: false
+  use_current_activs: false
+  n_internal_steps: 1
+  dtype: float32
+  device: cpu
+task:
+  max_steps: 1200
+  n_agents: 4
+  n_packages: 1
+  package_width: 0.15
+  package_length: 0.15
+  package_mass: 50.0
+seed: 42

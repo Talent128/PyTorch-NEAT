@@ -1,0 +1,13 @@
+defaults:
+  - adaptive_linear_config
+  - _self_
+
+neat_config_path: conf/algorithm/neat_config/adaptive_linear.cfg
+weight_threshold: 0.3
+weight_max: 3.0
+activation: tanh
+cppn_activation: identity
+#batch_size: null    # 将在运行时被experiment.trials覆盖（VMAS并行环境数）
+#device: "cpu"       # 默认值，会被experiment.device覆盖
+input_coords: null   # null表示自动生成（圆形分布）
+output_coords: null  # null表示自动生成（圆形分布）

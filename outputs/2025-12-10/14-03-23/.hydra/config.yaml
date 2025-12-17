@@ -1,0 +1,32 @@
+experiment:
+  generations: 200
+  trials: 60
+  n_parallel: 300
+  device: cuda:2
+  continuous_actions: true
+  overwrite: false
+  render: true
+  save_render: false
+  train_render: false
+  show_gen: -1
+  collect_results: true
+  checkpt_freq: 1
+  results_dir: null
+algorithm:
+  neat_config_path: conf/algorithm/neat_config/recurrent.cfg
+  activation: sigmoid
+  prune_empty: false
+  use_current_activs: false
+  n_internal_steps: 1
+  dtype: float32
+task:
+  max_steps: 300
+  n_agents: 4
+  collisions: true
+  agents_with_same_goal: 1
+  observe_all_goals: false
+  shared_rew: true
+  split_goals: false
+  lidar_range: 0.35
+  agent_radius: 0.1
+seed: 42

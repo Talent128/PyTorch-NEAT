@@ -1,0 +1,5 @@
+- algorithm=adaptive
+- task=vmas/transport
+- experiment.render=true
+- experiment.device=cpu
+- experiment.show_gen=10

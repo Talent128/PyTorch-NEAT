@@ -1,0 +1,12 @@
+defaults:
+  - adaptive_config
+  - _self_
+
+neat_config_path: conf/algorithm/neat_config/adaptive.cfg
+weight_threshold: 0.25
+activation: tanh
+#batch_size: null  # 将在运行时被experiment.trials覆盖（VMAS并行环境数）
+#device: "cpu"     # 默认值，会被experiment.device覆盖
+input_coords: null   # null表示自动生成（圆形分布）
+hidden_coords: null  # null表示自动生成（网格分布）
+output_coords: null  # null表示自动生成（圆形分布）

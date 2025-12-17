@@ -1,0 +1,7 @@
+defaults:
+  - experiment: base_experiment
+  - algorithm: ???
+  - task: ???
+  - _self_
+
+seed: 42

@@ -1,0 +1,29 @@
+experiment:
+  generations: 200
+  trials: 60
+  n_parallel: 300
+  device: cpu
+  continuous_actions: true
+  overwrite: false
+  render: true
+  save_render: false
+  train_render: false
+  show_gen: -1
+  collect_results: true
+  checkpt_freq: 1
+  results_dir: null
+algorithm:
+  neat_config_path: conf/algorithm/neat_config/adaptive.cfg
+  weight_threshold: 0.25
+  activation: tanh
+  input_coords: null
+  hidden_coords: null
+  output_coords: null
+task:
+  max_steps: 1200
+  n_agents: 6
+  n_packages: 1
+  package_width: 0.15
+  package_length: 0.15
+  package_mass: 50.0
+seed: 42

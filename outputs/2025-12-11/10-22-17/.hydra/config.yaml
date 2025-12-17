@@ -1,0 +1,33 @@
+experiment:
+  generations: 200
+  trials: 60
+  n_parallel: 300
+  device: cuda:3
+  continuous_actions: true
+  overwrite: false
+  render: false
+  save_render: false
+  train_render: false
+  show_gen: -1
+  collect_results: true
+  checkpt_freq: 1
+  results_dir: null
+algorithm:
+  neat_config_path: conf/algorithm/neat_config/recurrent.cfg
+  activation: sigmoid
+  prune_empty: false
+  use_current_activs: false
+  n_internal_steps: 1
+  dtype: float32
+task:
+  max_steps: 600
+  n_passages: 1
+  fixed_passage: true
+  joint_length: 0.5
+  random_start_angle: true
+  random_goal_angle: true
+  observe_joint_angle: true
+  asym_package: true
+  mass_ratio: 5.0
+  mass_position: 0.75
+seed: 42

@@ -1,0 +1,12 @@
+defaults:
+  - vmas_flocking_config
+  - _self_
+
+
+max_steps: 300
+n_agents: 5
+n_obstacles: 3
+collision_reward: -0.1
+static_at_origin: True #False：保持原有行为——绿色目标在 (0, -1) 起始，脚本驱动沿圆轨迹移动；True：绿色目标在（0，0）原点处静止。
+
+#任务：多智能体在平面上集群到绿色目标附近，避免相互/障碍物碰撞，同时保持队形紧凑并尽量高速前进。

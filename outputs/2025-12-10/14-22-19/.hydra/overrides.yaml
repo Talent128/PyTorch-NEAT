@@ -1,0 +1,3 @@
+- algorithm=recurrent
+- task=vmas/navigation
+- experiment.generations=50
